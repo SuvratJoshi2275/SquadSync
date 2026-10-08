@@ -1,251 +1,484 @@
-# SquadSync — Analytics Foundation + Prototype UI (Phase 1)
+<div align="center">
 
-Tactical Intelligence and Decision Support Platform for Football Analytics,
-with an Integrated Football-Specific AI Assistant.
+# ⚽ SquadSync
 
-This is the **first-phase prototype**: a working analytics foundation over
-a Barcelona-only StatsBomb-derived dataset, plus a Streamlit UI that shows
-both what's functional today and the full intended product shape.
+### Tactical Intelligence & Football Analytics Platform
 
-## Directory structure
+**Turning football event data into structured, interpretable match, player and tactical intelligence.**
 
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-Visualisation-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-Analytics-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=for-the-badge)
+
+</div>
+
+---
+
+## 🎯 What is SquadSync?
+
+**SquadSync** is a football analytics and tactical intelligence platform designed to move beyond isolated match statistics and transform football event data into structured, measurable and interpretable insights.
+
+Instead of stopping at questions such as **“What happened?”**, SquadSync establishes the analytical foundation required to explore deeper questions around player behaviour, team structure and tactical patterns.
+
+The current implementation is the **7th-semester midterm prototype**, built around a Barcelona-focused dataset derived from **StatsBomb Open Data**.
+
+It provides two distinct experiences:
+
+### 👥 Fan Mode
+Built for accessible football exploration and match understanding.
+
+### 🧠 Coach Mode
+Built for deeper team, player and tactical analysis.
+
+> **Current status:** The data pipeline, reusable analytics layer and interactive analytics interface are functional. Predictive modelling, recommendation systems and the football-specific AI assistant belong to later development phases.
+
+---
+
+# ✨ Current Capabilities
+
+## 👥 Fan Mode
+
+### 🏠 Home
+- Team identity and recent form
+- Latest fixture overview
+- Recent match cards
+- Quick access to football analytics
+
+### 🗓️ Match Browser
+Explore available matches using filters such as:
+
+- season
+- competition
+- result
+
+### 👤 Player Analysis
+- Player search
+- Appearance information
+- Estimated minutes
+- Goals and source-supplied xG
+- Passing and carry statistics
+- Pressure involvement
+- Shot-location visualisation
+
+### 🏟️ Match Centre
+
+A match-focused analytical workspace containing:
+
+- score and fixture context
+- goal-event information where supported by the data
+- match overview
+- lineup visualisation
+- match statistics
+- shot map
+- passing network
+- tactical views
+- event timeline
+- optional advanced event data
+
+---
+
+## 🧠 Coach Mode
+
+### 📊 Team Overview
+- Win / draw / loss record
+- Form trends
+- Competition breakdown
+- Formation usage
+- Historical team overview
+
+### ♟️ Tactical Analysis
+- Formation-shape analysis
+- Passing-zone distributions
+- Pressure-zone distributions
+- Progressive carry analysis
+- Player involvement
+- Formation-change sequences
+
+### 🧬 Player Intelligence
+- Sortable squad analytics
+- Individual player profiles
+- Multi-player comparison
+- Performance and involvement indicators
+
+### 🔬 Match Analysis
+Coach Mode provides access to the complete Match Centre for deeper match-level inspection.
+
+---
+
+# 🗺️ Football-Native Visual Analytics
+
+SquadSync converts event data into football-oriented visualisations rather than exposing raw tables directly.
+
+### Shot Maps
+
+Recorded shot coordinates are displayed on a football pitch, with source-provided expected-goals values available for shot analysis.
+
+### Passing Networks
+
+Players are represented as **nodes** and completed passing relationships as **weighted edges**.
+
+Node positions are based on average completed-pass origins, while edge strength represents passing volume.
+
+### Formation Views
+
+Recorded lineup positions are mapped to schematic pitch positions to provide an intuitive view of team shape.
+
+### Zone Analysis
+
+Passing and pressure events are grouped spatially to expose where different actions occur across the pitch.
+
+---
+
+# 🏗️ Current Architecture
+
+```text
+                     StatsBomb Open Data
+                              │
+                              ▼
+                   Data Processing / ETL
+                              │
+                              ▼
+                      Parquet Cache
+                              │
+                              ▼
+                         Data Loader
+                              │
+                              ▼
+                    Analytics Layer
+                 ┌────────────┼────────────┐
+                 │            │            │
+               Match        Player       Team
+                 │            │            │
+                 └────────────┼────────────┘
+                              │
+                           Tactical
+                              │
+                              ▼
+                    Streamlit + Plotly
+                              │
+                 ┌────────────┴────────────┐
+                 ▼                         ▼
+             Fan Mode                 Coach Mode
 ```
-squadsync/
-├── app.py                     # Streamlit entry point — Fan/Coach mode switch,
-│                                 nav, Roadmap page
+
+The project deliberately separates **data access**, **analytics** and **presentation**.
+
+Analytics modules do not depend on Streamlit, allowing the underlying football logic to be reused independently of the current interface.
+
+---
+
+# 🔄 Data Pipeline
+
+```text
+StatsBomb JSON
+      │
+      ▼
+Selection + Cleaning
+      │
+      ▼
+Transformation
+      │
+      ▼
+Barcelona Parquet Cache
+      │
+      ▼
+Match-Level Data Loader
+      │
+      ▼
+Reusable Analytics
+      │
+      ▼
+Football Visualisations
+```
+
+Event-heavy data is partitioned and accessed at match level rather than repeatedly loading the complete event archive at runtime.
+
+This keeps the interactive application lightweight while preserving a reusable analytical foundation.
+
+---
+
+# 📁 Project Structure
+
+```text
+SquadSync/
+│
+├── app.py
+│
 ├── requirements.txt
-├── data/
-│   ├── raw/<team>/*.csv       # source CSVs, never modified, never
-│   │                            loaded fully at runtime
-│   ├── processed/<team>/      # Parquet cache built by build_cache.py
-│   ├── build_cache.py         # one-time ETL — UNCHANGED in this redesign
-│   └── loader.py               # UNCHANGED in this redesign
+│
+├── README.md
+│
+├── .gitignore
+│
 ├── analytics/
-│   ├── team.py                # UNCHANGED
-│   ├── player.py               # UNCHANGED
-│   ├── tactical.py             # UNCHANGED
-│   └── match.py                # small additive change — see below
+│   ├── match.py
+│   ├── player.py
+│   ├── team.py
+│   └── tactical.py
+│
+├── data/
+│   ├── build_cache.py
+│   └── loader.py
+│
 ├── ui/
-│   ├── theme.py                 # NEW — design tokens, CSS, pitch figure builder
-│   ├── components.py            # NEW — match cards, form strip, comparison bars,
-│   │                               shot map, lineup pitch, passing network
-│   ├── dashboard.py              # REDESIGNED — Fan Home + Coach Team Overview
-│   ├── match_analysis.py         # REDESIGNED — Matches browser + Match Centre
-│   ├── player_analysis.py        # REDESIGNED — Fan player page + Coach
-│   │                               Player Intelligence
-│   ├── tactical_analysis.py      # REDESIGNED — Coach tactical dashboard
-│   ├── future_sections.py        # REDESIGNED — now a Roadmap page, not primary nav
-│   └── placeholders.py           # REDESIGNED — compact roadmap card component
+│   ├── components.py
+│   ├── dashboard.py
+│   ├── match_analysis.py
+│   ├── player_analysis.py
+│   ├── tactical_analysis.py
+│   ├── future_sections.py
+│   ├── placeholders.py
+│   └── theme.py
+│
 └── tests/
-    ├── test_analytics.py       # UNCHANGED — still fully passes (see below)
-    └── test_match_goals.py      # NEW — regression test for goal attribution
+    ├── test_analytics.py
+    └── test_match_goals.py
 ```
 
-## Redesign summary (this pass)
+Large raw and processed football datasets are intentionally excluded from version control.
 
-This pass replaced the report-style dashboard with a two-mode football
-product (**FAN MODE** / **COACH MODE**, switched from the top of the
-sidebar) built around a proper design system and football-native visuals.
+---
 
-**Files changed:**
-- `app.py` — rebuilt around the Fan/Coach mode switch and section
-  navigation per mode; future modules moved off primary nav into a
-  "Roadmap" page reachable via a sidebar button.
-- `ui/dashboard.py`, `ui/match_analysis.py`, `ui/player_analysis.py`,
-  `ui/tactical_analysis.py`, `ui/future_sections.py`, `ui/placeholders.py`
-  — redesigned around football-product UI, not raw dataframes.
-- `analytics/match.py` — one additive, backward-compatible change: added
-  `match_goals()` and `match_substitutions()` (new functions; nothing
-  existing was modified or removed) so the UI can render goal events and
-  substitutions without reaching into raw event rows itself.
+# 🛠️ Tech Stack
 
-**Files new:**
-- `ui/theme.py` — SquadSync design system: color tokens, compact CSS, and
-  a reusable football-pitch figure builder (used by the shot map, lineup,
-  and passing-network visuals so they look like a pitch, not a generic
-  XY scatter chart).
-- `ui/components.py` — match cards, form strip, comparison bars, shot map,
-  lineup pitch, passing-network visualization. These are what translate
-  analytics output into football language and enforce that no backend
-  field (match_id, player_id, location_x/y, position_id, etc.) is ever
-  rendered directly to the user.
-- `tests/test_match_goals.py` — regression test for the new goal
-  attribution logic (see "Bug found and fixed" below).
+| Layer | Technology |
+|---|---|
+| **Language** | Python |
+| **Data Processing** | Pandas, NumPy |
+| **Source Data** | StatsBomb Open Data |
+| **Raw Format** | JSON |
+| **Processed Storage** | Parquet |
+| **Parquet Engine** | PyArrow |
+| **Application** | Streamlit |
+| **Visualisation** | Plotly |
+| **Version Control** | Git & GitHub |
 
-**Files intentionally left unchanged:**
-`data/build_cache.py`, `data/loader.py`, `analytics/team.py`,
-`analytics/player.py`, `analytics/tactical.py`, `tests/test_analytics.py`
-— the working data pipeline and existing analytics were preserved exactly
-as specified. CSV → Parquet → Loader → Analytics → UI is intact.
+---
 
-### What changed structurally
+# 🚀 Running the Project
 
-- **Fan Mode**: Home (identity, form strip, last match, recent match
-  cards), Matches (filterable match browser as cards), Players (search →
-  profile with real shot locations on a pitch), Match Centre (flagship
-  page).
-- **Coach Mode**: Team Overview (record, formation profile, form trend,
-  competition breakdown), Tactical Analysis (formation shape, zone
-  distributions, progression, pressing, in-match formation-change
-  sequence), Player Intelligence (squad table + profile + compare),
-  Match Analysis (same Match Centre as Fan Mode).
-- **Match Centre**: football-style score header, goals listed directly
-  under each team, tabs for Overview / Lineups / Stats / Tactics /
-  Events. Shot map and lineup are drawn on an actual pitch outline
-  (`ui/theme.base_pitch`), not a generic scatter plot. Passing network
-  is a real node/edge graph (player = node at their average completed-
-  pass location, edge thickness = pass volume) instead of a table.
-  Raw event rows are only visible behind an explicit "Advanced data"
-  expander in the Events tab.
-- **Future modules** (Opponent Analysis, Squad Intelligence, Predictions,
-  Recommendations, AI Assistant) moved out of primary navigation into a
-  dedicated Roadmap page (sidebar button), each still describing its
-  planned capabilities honestly as not-yet-built.
-- **No backend fields exposed**: IDs, `location_x`/`location_y`,
-  `position_id`, raw column names, etc. are consumed internally by
-  `ui/components.py` and never rendered as-is; the one exception is the
-  "Advanced data" expander in the Events tab, which is explicitly labeled
-  and opt-in.
-
-### Date bug (item 20) — investigated and fixed, not hidden
-
-The team-trend chart's x-axis appeared to span back to ~1975. Root cause:
-the dataset genuinely contains 4 archival matches from 1974–1984 mixed
-into an otherwise 2004–2021 archive (verified directly against
-`matches.csv` — not a parsing bug). Including them by default stretches
-any date axis to a 47-year span and compresses the dense modern period.
-Fix: the Coach Overview form trend defaults to the dense 2000+ era with
-an explicit, visible checkbox — *"Include full historical archive (adds 4
-matches from 1974–1984)"* — to opt into the complete history. The data is
-never dropped or misrepresented, only the default view is scoped, and
-the reason is stated on-screen.
-
-### Bug found and fixed during this pass
-
-While testing the new `match_goals()` against real own-goal matches
-(rather than only the default match), an opponent-attribution bug
-surfaced: own goals were attributed to a lookup of *any* Barcelona match
-featuring that team name, which could resolve to the wrong opponent
-entirely (e.g. a Sevilla match's own goal was briefly mislabeled "Real
-Madrid"). Fixed by resolving the opponent directly from the selected
-match's own row in `matches.csv` instead of an ambiguous cross-match
-lookup, and added `tests/test_match_goals.py` to catch this class of
-regression going forward.
-
-### Known analytics/data limitation surfaced by this redesign
-
-The dataset's event feed (`events.csv`, `shots.csv`, `passes.csv`, etc.)
-is captured from **Barcelona's side only** — opponent shots and passes
-are not present at all. This means:
-- Opponent goals can only be individually attributed to a scorer when
-  they came via an "Own Goal Against" event (a Barcelona player scoring
-  into their own net). Opponent goals from normal open play have no
-  event record in this dataset.
-- `match_goals()` now returns an `opponent_goals_fully_attributed` flag,
-  and the Match Centre shows an explicit caveat whenever the shown
-  opponent goal list doesn't account for their full score — rather than
-  silently presenting an incomplete list as complete. The scoreline
-  itself (from `matches.csv`) is always shown and is always correct;
-  only the opponent's scorer-by-scorer breakdown can be incomplete.
-- Match Stats / Overview tabs are explicitly labeled as Barcelona-only
-  detail for the same reason (no independent opponent-side stat line
-  exists in the data to compare against).
-
-## How to run
+## 1. Clone the repository
 
 ```bash
-cd squadsync
+git clone https://github.com/SuvratJoshi2275/SquadSync.git
+cd SquadSync
+```
+
+## 2. Create a virtual environment
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### Windows
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+## 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# One-time: build the Parquet cache from the raw CSVs (only needed once,
-# or after adding a new team's CSVs)
+## 4. Prepare the dataset
+
+The large football datasets are not included in this repository.
+
+After placing the required Barcelona source data in the expected local data directory, build the processed cache:
+
+```bash
 python data/build_cache.py --team barcelona
+```
 
+## 5. Launch SquadSync
+
+```bash
 streamlit run app.py
 ```
 
-## Test results
+---
+
+# 🧪 Testing
+
+The current prototype includes analytical and regression checks.
 
 ```bash
-python tests/test_analytics.py      # unchanged suite — All checks passed.
-python tests/test_match_goals.py    # new — All checks passed.
+python tests/test_analytics.py
+python tests/test_match_goals.py
 ```
 
-Both suites pass. `test_analytics.py` was not modified. The full app was
-also driven through Streamlit's `AppTest` harness across every Fan/Coach
-section, match-card click-through navigation, the Roadmap page, and
-several own-goal matches — no uncaught exceptions.
+The tests cover core analytics behaviour and regression checking for match-goal attribution logic.
 
+---
 
+# 📊 Data & Analytical Integrity
 
-## What's functional now
+SquadSync deliberately distinguishes between:
 
-**Fan Mode:** Home (identity, form, last/recent match cards), Matches
-(filterable browser: season/competition/result), Players (search →
-profile with real career totals and shot locations on a pitch), Match
-Centre (score header with per-team goal list, Overview/Lineups/Stats/
-Tactics/Events tabs, shot map and passing network on a real pitch,
-lineup on a schematic formation diagram).
+**Observed Data**  
+Directly available football events and match information.
 
-**Coach Mode:** Team Overview (record, formation profile, form trend
-with the archival-era toggle, competition breakdown), Tactical Analysis
-(formation shape usage, shot zones, per-match passing/pressing zone
-breakdown, progressive carries, formation-change sequence, player
-involvement), Player Intelligence (sortable squad table, player profile,
-2–4 player compare), Match Analysis (same Match Centre as Fan Mode).
+**Derived Analytics**  
+Metrics and visualisations computed from the available event data.
 
-Tactical Analysis deliberately does **not** generate qualitative
-narratives ("dominated the left flank") — only numbers with a clear
-metric behind them.
+**Future Model Outputs**  
+Predictions, recommendations and AI-generated explanations that require separate implementation and evaluation.
 
-## What's a future-phase placeholder
+This distinction is important because football event data cannot support every tactical conclusion.
 
-Opponent Analysis, Squad Intelligence, Predictions, Recommendations, and
-the AI Assistant no longer occupy primary navigation. They live on a
-dedicated **Roadmap** page (sidebar button, below the mode switch), each
-with an honest "not yet implemented" status and an expandable list of
-planned capabilities — no fabricated predictions, scores, or AI
-responses anywhere in the app.
+For example:
 
-## Known limitations of the current Barcelona-only dataset
+- source-provided xG is used rather than claiming a SquadSync-trained xG model;
+- lineup positions are schematic rather than tracking coordinates;
+- event locations are not treated as continuous player tracking;
+- unavailable opponent-side event detail is not fabricated;
+- tactical views currently report measurable patterns rather than unsupported qualitative narratives.
 
-- **Minutes played are estimated**, not authoritative: derived from
-  lineup `from`/`to` timestamps, with players who finish a match assumed
-  to play to the 90th minute. Matches that went to extra time are
-  therefore understated for players who finished the match. Flagged in
-  the UI, not silently corrected.
-- **xG is only present on shot events** — no possession-value or
-  expected-threat model exists yet for non-shot actions.
-- **No tracking/360 data** — spatial analysis is limited to event
-  locations (pass/carry/shot/pressure origins and, where recorded,
-  carry end points), not full player positioning. This is why tactical
-  claims are kept to measurable distributions rather than pitch-control
-  or off-ball inference.
-- **Single-team scope** — all analytics are Barcelona-relative; there is
-  no true opponent-side dataset yet, which is why Opponent Analysis is a
-  placeholder rather than partially built.
-- **Formation data is the Starting XI shape plus recorded Tactical Shift
-  events** — it does not capture fluid in-possession vs. out-of-possession
-  shape changes.
+---
 
-## Architectural decisions to preserve going forward
+# ⚠️ Current Data Limitations
 
-- **Team-namespaced data layout** (`data/raw/<team>/`,
-  `data/processed/<team>/`): adding Arsenal, Chelsea, etc. is "drop CSVs
-  in a new folder, run `build_cache.py --team <name>`" — no analytics or
-  UI code changes required. `app.py`'s team selector already reads
-  whatever teams exist under `data/processed/`.
-- **Never load full event-level tables into memory at runtime.**
-  `events.csv`/`passes.csv`/`carries.csv`/`pressures.csv` are pre-
-  partitioned by `match_id` at build time; `loader.py` intentionally
-  raises if a caller tries to load them without a `match_id`, and
-  cross-match player aggregates are pre-computed once in
-  `player_pass_stats.parquet` / `player_carry_stats.parquet` instead of
-  re-scanning raw events on every page load.
-- **Analytics functions are UI-framework-agnostic** — nothing in
-  `analytics/` imports Streamlit, so the same functions could back a
-  FastAPI service (for the eventual live/WebSocket mode described in the
-  project's data/ML architecture) without rewriting the logic.
-- **The AI Assistant placeholder is scoped as an orchestration layer**,
-  not a prediction engine — when it's built, it should call into
-  `analytics/*` and explain the output, not duplicate the calculations.
+The current prototype is intentionally scoped around a **Barcelona-focused historical dataset**.
+
+Current limitations include:
+
+- opponent-side event detail is incomplete;
+- minutes played are currently estimated and require further validation;
+- xG is available only where supplied by source shot events;
+- continuous tracking data is not part of the current pipeline;
+- StatsBomb 360 data is not currently integrated into the runtime system;
+- current analysis uses historical batch data rather than a live football feed.
+
+These constraints define what the current system claims and what remains future work.
+
+---
+
+# 🧭 Development Roadmap
+
+SquadSync is being developed incrementally, with the analytical foundation established before introducing model-driven intelligence.
+
+### ✅ Phase 1 — Analytics Foundation
+
+- [x] StatsBomb data ingestion
+- [x] Processed Parquet storage
+- [x] Match-level data loading
+- [x] Team analytics
+- [x] Player analytics
+- [x] Match analytics
+- [x] Tactical analytics
+- [x] Fan Mode
+- [x] Coach Mode
+- [x] Match Centre
+- [x] Shot maps
+- [x] Passing networks
+- [x] Formation visualisation
+- [x] Passing and pressure zones
+- [x] Carry progression
+- [x] Player comparison
+
+### 🔨 Phase 2 — Feature Engineering & Validation
+
+- [ ] Improved minutes-played calculation
+- [ ] Per-90 normalisation
+- [ ] Rolling-form features
+- [ ] Role-aware player features
+- [ ] Opponent-relative features
+- [ ] Graph-level passing-network metrics
+- [ ] Expanded data-quality validation
+
+### 🧠 Phase 3 — Football Intelligence
+
+- [ ] Player-role classification
+- [ ] Player similarity
+- [ ] Team-style analysis
+- [ ] Opponent analysis
+- [ ] Squad intelligence
+- [ ] Tactical pattern detection
+- [ ] Selected predictive models
+
+### 🤖 Phase 4 — Decision Support & AI
+
+- [ ] Evidence-grounded recommendations
+- [ ] Prediction with uncertainty handling
+- [ ] Football-specific AI assistant
+- [ ] Controlled analytics/model tool calling
+- [ ] Evidence synthesis and explanation
+- [ ] Retrieval-Augmented Generation for suitable football knowledge sources
+
+### 🔬 Research Directions
+
+These are **not current implementation commitments**:
+
+- Expected Threat (xT)
+- Graph Neural Networks
+- Tracking-based spatial analysis
+- Video understanding
+- Near-real-time analytics
+- Reinforcement learning
+- Multimodal football intelligence
+
+---
+
+# 🧠 Long-Term Vision
+
+SquadSync ultimately aims to progress through an intelligence hierarchy:
+
+```text
+Football Data
+     ↓
+Statistics
+     ↓
+Features
+     ↓
+Patterns
+     ↓
+Tactical Intelligence
+     ↓
+Context
+     ↓
+Prediction
+     ↓
+Decision Support
+     ↓
+Evidence-Grounded Explanation
+```
+
+The intended AI assistant sits **after the intelligence layer**, not in place of it.
+
+Structured football questions should be answered by validated data and analytics. Future model-based questions should be handled by evaluated models. The assistant's role is to orchestrate these capabilities and explain their evidence naturally.
+
+---
+
+# 🎓 Academic Context
+
+SquadSync is being developed as a **B.Tech CSE (Artificial Intelligence & Machine Learning) Major Project** at the **University of Petroleum & Energy Studies (UPES)**.
+
+### Project Team
+
+- **Suvrat Joshi**
+- **Sushant Jaiswal**
+- **Shivam Venkatesh**
+
+**Project Mentor:** Prof. Lalit Sachan
+
+The current repository represents the project's **7th-semester midterm implementation** and will evolve as subsequent analytics, machine-learning and decision-support modules are developed.
+
+---
+
+<div align="center">
+
+### ⚽ From football events to football intelligence.
+
+**Data → Patterns → Tactics → Decisions**
+
+</div>
